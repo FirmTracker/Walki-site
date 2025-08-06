@@ -1,71 +1,779 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Walki – Screen Time with Movement</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen;
-      margin: 0;
-      padding: 2rem;
-      background: #f9f9f9;
-      color: #333;
-      line-height: 1.6;
-    }
-    header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    h1 {
-      font-size: 2rem;
-    }
-    section {
-      max-width: 700px;
-      margin: 0 auto;
-    }
-    footer {
-      text-align: center;
-      margin-top: 3rem;
-      font-size: 0.9rem;
-      color: #888;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walki – Turn Steps Into Screen Time</title>
+    <style>
+        :root {
+            --primary: #f97316;
+            --primary-light: #fb923c;
+            --primary-dark: #ea580c;
+            --secondary: #f59e0b;
+            --accent: #fbbf24;
+            --text-primary: #ffffff;
+            --text-secondary: #d1d5db;
+            --text-muted: #9ca3af;
+            --bg-primary: #000000;
+            --bg-secondary: #111111;
+            --bg-tertiary: #1a1a1a;
+            --bg-card: #1f1f1f;
+            --border: #2a2a2a;
+            --border-light: #333333;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 0;
+        }
+
+        .logo {
+            font-size: 1.875rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.025em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 10rem 0 8rem;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(245, 158, 11, 0.08) 0%, transparent 50%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 6vw, 4.5rem);
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            margin-bottom: 3rem;
+            color: var(--text-secondary);
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl);
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+        }
+
+        .btn-secondary {
+            background: rgba(249, 115, 22, 0.15);
+            color: var(--primary-light);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(249, 115, 22, 0.25);
+            transform: translateY(-2px);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 8rem 0;
+            background: var(--bg-secondary);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-title {
+            font-size: 2.75rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            letter-spacing: -0.025em;
+            line-height: 1.2;
+        }
+
+        .section-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 650px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            align-items: stretch;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            padding: 2.5rem 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+            min-height: 320px;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--border-light);
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .feature-icon.steps {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            box-shadow: 0 8px 25px rgba(249, 115, 22, 0.3);
+        }
+
+        .feature-icon.screen {
+            background: linear-gradient(135deg, var(--secondary), var(--primary-dark));
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+        }
+
+        .feature-icon.privacy {
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
+        }
+
+        .feature-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .feature-title {
+            font-size: 1.375rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            letter-spacing: -0.015em;
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 0.95rem;
+            flex: 1;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 8rem 0;
+            background: var(--bg-primary);
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+            padding: 2rem 1.5rem;
+        }
+
+        .step-number {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            margin: 0 auto 2rem;
+            box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4);
+            position: relative;
+        }
+
+        .step-number::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            opacity: 0.2;
+            z-index: -1;
+        }
+
+        .step-title {
+            font-size: 1.375rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            letter-spacing: -0.015em;
+        }
+
+        .step-description {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 1rem;
+        }
+
+        /* Privacy Section */
+        .privacy {
+            padding: 8rem 0;
+            background: var(--bg-secondary);
+        }
+
+        .privacy-content {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .privacy-icon {
+            width: 5rem;
+            height: 5rem;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 2.5rem;
+            box-shadow: 0 12px 30px rgba(249, 115, 22, 0.4);
+        }
+
+        .privacy .section-subtitle {
+            font-size: 1.125rem;
+            line-height: 1.8;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 4rem 0 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+
+        .footer-section p,
+        .footer-section a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            line-height: 1.7;
+            transition: color 0.2s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border);
+            padding-top: 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+                max-width: 800px;
+            }
+            
+            .feature-card:last-child {
+                grid-column: 1 / -1;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1.5rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .hero {
+                padding: 8rem 0 6rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.125rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+            
+            .features,
+            .how-it-works,
+            
+            .section-title {
+                font-size: 2.25rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                max-width: 400px;
+            }
+            
+            .feature-card {
+                padding: 2rem 1.5rem;
+                min-height: 280px;
+            }
+            
+            .feature-card:last-child {
+                grid-column: auto;
+                max-width: none;
+            }
+            
+            .steps {
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .section-title {
+                font-size: 1.875rem;
+            }
+            
+            .feature-card {
+                padding: 2rem 1.5rem;
+                min-height: 260px;
+            }
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-content > * {
+            animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+        .hero-subtitle {
+            animation-delay: 0.2s;
+        }
+
+        .cta-buttons {
+            animation-delay: 0.4s;
+        }
+
+        /* Intersection Observer Animation */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <h1>Walki</h1>
-    <p>Earn screen time by walking</p>
-  </header>
+    <header>
+        <nav class="container">
+            <div class="logo">Walki</div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#privacy">Privacy</a></li>
+            </ul>
+        </nav>
+    </header>
 
-  <section>
-    <h2>What is Walki?</h2>
-    <p>
-      Walki is a personal screen time management app that helps users reduce screen usage through positive reinforcement.
-      Users set app-specific screen time limits and unlock additional usage by walking or doing other physical activity.
-    </p>
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>Turn Your Steps Into Screen Time</h1>
+                    <p class="hero-subtitle">
+                        Break free from endless scrolling. Walki rewards your movement with earned screen time, 
+                        creating a healthier relationship with your devices.
+                    </p>
+                    <div class="cta-buttons">
+                        <a href="#how-it-works" class="btn btn-primary">
+                            🚶‍♂️ Learn How It Works
+                        </a>
+                        <a href="#features" class="btn btn-secondary">
+                            ✨ See Features
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <h2>How It Works</h2>
-    <ul>
-      <li>Set daily screen time limits for specific apps</li>
-      <li>Track physical activity via Apple HealthKit</li>
-      <li>Earn more screen time by walking</li>
-    </ul>
+        <section id="features" class="features">
+            <div class="container">
+                <div class="section-header animate-on-scroll">
+                    <h2 class="section-title">Why Choose Walki?</h2>
+                    <p class="section-subtitle">
+                        Transform your screen time habits with positive reinforcement and movement-based rewards
+                    </p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card animate-on-scroll">
+                        <div class="feature-icon steps">🚶‍♂️</div>
+                        <div class="feature-content">
+                            <h3 class="feature-title">Earn Through Movement</h3>
+                            <p class="feature-description">
+                                Every step counts! Connect with Apple HealthKit to automatically track your daily activity 
+                                and convert your movement into valuable screen time credits.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="feature-card animate-on-scroll">
+                        <div class="feature-icon screen">📱</div>
+                        <div class="feature-content">
+                            <h3 class="feature-title">Smart App Limits</h3>
+                            <p class="feature-description">
+                                Set personalized daily limits for specific apps. When you hit your limit, earn more time 
+                                by getting active instead of mindlessly scrolling.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="feature-card animate-on-scroll">
+                        <div class="feature-icon privacy">🔒</div>
+                        <div class="feature-content">
+                            <h3 class="feature-title">Privacy First</h3>
+                            <p class="feature-description">
+                                Your health data stays on your device. We never share, sell, or store your personal 
+                                information. Complete privacy, complete control.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <h2>Privacy & Data</h2>
-    <p>
-      Walki does not share or sell any user data. Health data is used solely to adjust screen time limits and remains on-device.
-    </p>
+        <section id="how-it-works" class="how-it-works">
+            <div class="container">
+                <div class="section-header animate-on-scroll">
+                    <h2 class="section-title">How Walki Works</h2>
+                    <p class="section-subtitle">
+                        Simple, effective, and designed to build lasting healthy habits
+                    </p>
+                </div>
+                <div class="steps">
+                    <div class="step animate-on-scroll">
+                        <div class="step-number">1</div>
+                        <h3 class="step-title">Set Your Limits</h3>
+                        <p class="step-description">
+                            Choose daily screen time limits for apps like Instagram, TikTok, or any app you want to use more mindfully.
+                        </p>
+                    </div>
+                    <div class="step animate-on-scroll">
+                        <div class="step-number">2</div>
+                        <h3 class="step-title">Get Moving</h3>
+                        <p class="step-description">
+                            When you reach your limit, step outside! Your iPhone automatically tracks your steps through HealthKit.
+                        </p>
+                    </div>
+                    <div class="step animate-on-scroll">
+                        <div class="step-number">3</div>
+                        <h3 class="step-title">Redeem & Enjoy</h3>
+                        <p class="step-description">
+                            Convert your steps into screen time credits and unlock additional usage. The more you move, the more you earn!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <h2>Developer</h2>
-    <p>
-      Walki is developed by [Your Name], a developer focused on health and wellness technology.
-      For inquiries, email [your@email.com].
-    </p>
-  </section>
+        <section id="privacy" class="privacy">
+            <div class="container">
+                <div class="privacy-content animate-on-scroll">
+                    <div class="privacy-icon">🛡️</div>
+                    <h2 class="section-title">Your Privacy Matters</h2>
+                    <p class="section-subtitle">
+                        Walki is built with privacy at its core. Your health data, screen time patterns, and personal 
+                        information never leave your device. We use Apple's HealthKit framework to securely access 
+                        your step data locally, ensuring complete privacy and security.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
 
-  <footer>
-    &copy; 2025 Walki. All rights reserved.
-  </footer>
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Walki</h3>
+                    <p>Transforming screen time through movement. Build healthier digital habits, one step at a time.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <p>Questions or feedback?<br>
+                    <a href="mailto:hello@walki.app">ritesh@firmtimer.com</a></p>
+                </div>
+                <div class="footer-section">
+                    <h3>Developer</h3>
+                    <p>Created with ❤️ by an independent developer focused on health and wellness technology.</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Walki. All rights reserved. Made to help you live more actively.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll animation observer
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all elements with animate-on-scroll class
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(0, 0, 0, 0.95)';
+                header.style.borderBottomColor = 'var(--border-light)';
+            } else {
+                header.style.background = 'rgba(0, 0, 0, 0.8)';
+                header.style.borderBottomColor = 'var(--border)';
+            }
+        });
+    </script>
 </body>
 </html>
